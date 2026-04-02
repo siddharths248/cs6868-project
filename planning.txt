@@ -16,7 +16,7 @@ the theoretical consensus hierarchy (Lecture 03) and practical lock-free design.
    wrapper that takes a sequential object (represented as a pure function
    `state -> op -> state * result`) and produces a linearizable concurrent
    object. Use a linked list of operation nodes and `Atomic.compare_and_set`
-   on the tail pointer.
+   on the tail pointer. 
 2. Implement the **wait-free universal construction** with helping: each thread
    has an announce array entry; before applying its own operation, a thread
    checks whether other threads have pending operations and helps complete
@@ -45,3 +45,8 @@ prohibitive overhead?
 
 - M. Herlihy, "Wait-Free Synchronization," *ACM TOPLAS*, 1991
 - AoMPP Chapter 6 (Universality of Consensus)
+
+### Assigned to
+1. Task 1 - Venkat
+2. Task 2 - Sameer
+3. Task 3 - Siddharth
