@@ -1,8 +1,8 @@
 
 
-type ('a,'b) t = {
-  head : ('a,'b) Node.t array;
-  tail : ('a,'b) Node.t;
+type 'a t = {
+  head : 'a Node.t array;
+  tail : 'a Node.t;
   num_threads : int;
 }
 

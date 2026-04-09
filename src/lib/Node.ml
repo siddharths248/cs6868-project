@@ -1,10 +1,10 @@
 
-type ('a,'b) t =
+type 'a t =
   {
-    decide_next : 'a CASConsensus.t;
-    mutable next : ('a,'b) t option;
+    decide_next : 'a t CASConsensus.t;
+    mutable next : 'a t option;
     mutable seq : int;
-    invoc : 'b -> 'b (*invoc is a function*)
+    invoc : 'a -> 'a (*invoc is a function*)
   }
 
 let create invoc num_threads = {
