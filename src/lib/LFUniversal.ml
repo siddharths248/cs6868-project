@@ -15,8 +15,6 @@ let create num_threads =
     num_threads
   }
 
-(*new_obj is a newly constrcuted object*)
-(*invoc is a partially applied function. Its only missing argument is the object. It returns a new object after applying the function *)
 let apply lfu_obj invoc new_obj tid =
   let prefer = Node.create invoc lfu_obj.num_threads in
   let rec aux () =
