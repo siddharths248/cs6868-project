@@ -1,4 +1,4 @@
 (library
  (name src)
- (modules CASConsensus Node LFUniversal)
+ (modules CASConsensus Node LFUniversal WFUniversal)
 )
