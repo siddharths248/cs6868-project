@@ -15,7 +15,7 @@ let create num_threads =
     num_threads
   }
 
-let apply wfu_obj invoc new_obj tid =
+let apply wfu_obj new_obj invoc tid =
   let anc = Node.create (Some invoc) wfu_obj.num_threads in
   Atomic.set wfu_obj.announce.(tid) anc;
   Atomic.set wfu_obj.head.(tid) (Node.max (Array.map Atomic.get wfu_obj.head));

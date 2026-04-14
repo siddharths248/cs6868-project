@@ -10,7 +10,7 @@ type 'a op =
 let empty = []
 
 
-let apply state op =
+let apply op state =
   match op with 
   | Enqueue x -> (state @ [x],None)
   | Dequeue -> (

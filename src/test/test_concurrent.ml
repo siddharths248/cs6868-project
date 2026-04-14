@@ -71,6 +71,7 @@ end) = struct
   let test_stack_sequential () =
     Printf.printf "Stack: testing sequential operations...\n%!";
     let s = U.Stack.create num_threads in
+    print_endline "Venky1";
     assert (U.Stack.apply s SequentialStack.Pop 0 = None);
     ignore (U.Stack.apply s (SequentialStack.Push 1) 0);
     ignore (U.Stack.apply s (SequentialStack.Push 2) 0);
