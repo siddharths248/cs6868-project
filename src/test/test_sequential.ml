@@ -1,5 +1,5 @@
 
-
+open Src
 
 let test_stack_push_pop () =
   let s = SequentialStack.empty in
@@ -74,52 +74,73 @@ let test_queue_fifo () =
 
 
 let test_set_insert_contains () =
-  let s = SequentialSortedSet.empty in
-  let s, _ = SequentialSortedSet.apply s (Insert 3) in
-  let s, _ = SequentialSortedSet.apply s (Insert 1) in
-  let s, _ = SequentialSortedSet.apply s (Insert 2) in
-  let _, r = SequentialSortedSet.apply s (Contains 2) in
+  let s = SequentialSortedList.empty in
+  let s, _ = SequentialSortedList.apply s (Insert 3) in
+  let s, _ = SequentialSortedList.apply s (Insert 1) in
+  let s, _ = SequentialSortedList.apply s (Insert 2) in
+  let _, r = SequentialSortedList.apply s (Contains 2) in
   assert (r = Some 2);
-  let _, r = SequentialSortedSet.apply s (Contains 99) in
+  let _, r = SequentialSortedList.apply s (Contains 99) in
   assert (r = None);
   print_endline "set insert/contains: OK"
 
 
 let test_set_remove () =
-  let s = SequentialSortedSet.empty in
-  let s, _ = SequentialSortedSet.apply s (Insert 1) in
-  let s, _ = SequentialSortedSet.apply s (Insert 2) in
-  let s, _ = SequentialSortedSet.apply s (Remove 1) in
-  let _, r = SequentialSortedSet.apply s (Contains 1) in
+  let s = SequentialSortedList.empty in
+  let s, _ = SequentialSortedList.apply s (Insert 1) in
+  let s, _ = SequentialSortedList.apply s (Insert 2) in
+  let s, _ = SequentialSortedList.apply s (Remove 1) in
+  let _, r = SequentialSortedList.apply s (Contains 1) in
   assert (r = None);
-  let _, r = SequentialSortedSet.apply s (Contains 2) in
+  let _, r = SequentialSortedList.apply s (Contains 2) in
   assert (r = Some 2);
   print_endline "set remove: OK"
 
 let test_set_sorted_order () =
   (* insert out of order, check internal list is sorted *)
-  let s = SequentialSortedSet.empty in
-  let s, _ = SequentialSortedSet.apply s (Insert 5) in
-  let s, _ = SequentialSortedSet.apply s (Insert 2) in
-  let s, _ = SequentialSortedSet.apply s (Insert 8) in
-  let s, _ = SequentialSortedSet.apply s (Insert 1) in
+  let s = SequentialSortedList.empty in
+  let s, _ = SequentialSortedList.apply s (Insert 5) in
+  let s, _ = SequentialSortedList.apply s (Insert 2) in
+  let s, _ = SequentialSortedList.apply s (Insert 8) in
+  let s, _ = SequentialSortedList.apply s (Insert 1) in
   assert (s = [1; 2; 5; 8]);
   print_endline "set sorted order: OK"
 
 
 let test_set_duplicate_insert () =
-  let s = SequentialSortedSet.empty in
-  let s, _ = SequentialSortedSet.apply s (Insert 3) in
-  let s, _ = SequentialSortedSet.apply s (Insert 3) in
+  let s = SequentialSortedList.empty in
+  let s, _ = SequentialSortedList.apply s (Insert 3) in
+  let s, _ = SequentialSortedList.apply s (Insert 3) in
   assert (s = [3]);
   print_endline "set duplicate insert: OK"
 
 let test_set_remove_nonexistent () =
-  let s = SequentialSortedSet.empty in
-  let s, _ = SequentialSortedSet.apply s (Insert 1) in
-  let s, _ = SequentialSortedSet.apply s (Remove 99) in
+  let s = SequentialSortedList.empty in
+  let s, _ = SequentialSortedList.apply s (Insert 1) in
+  let s, _ = SequentialSortedList.apply s (Remove 99) in
   assert (s = [1]);
   print_endline "set remove nonexistent: OK"
 
+
+
+let () =
+  print_endline "\n── Sequential Stack ──";
+  test_stack_push_pop ();
+  test_stack_empty_pop ();
+  test_stack_lifo ();
+
+  print_endline "\n── Sequential Queue ──";
+  test_queue_enqueue_dequeue ();
+  test_queue_empty_dequeue ();
+  test_queue_fifo ();
+
+  print_endline "\n── Sequential SortedSet ──";
+  test_set_insert_contains ();
+  test_set_remove ();
+  test_set_sorted_order ();
+  test_set_duplicate_insert ();
+  test_set_remove_nonexistent ();
+
+  print_endline "\nAll sequential tests passed."
 
 
