@@ -38,6 +38,33 @@ module MakeWF (Seq : SeqLike) = struct
     result
 end
 
+module SequentialSkipList = struct
+  type 'a state = 'a SkipList.skip_list option
+  type 'a op =
+    | Insert of 'a
+    | Remove of 'a
+    | Contains of 'a
+
+  let empty = None
+
+  let ensure = function
+    | Some sl -> sl
+    | None -> SkipList.create 16 0.5
+
+  let apply op state =
+    let sl = ensure state in
+    let next_state = Some sl in
+    match op with
+    | Insert x ->
+        SkipList.insert sl x;
+        (next_state, None)
+    | Remove x ->
+        SkipList.erase sl x;
+        (next_state, None)
+    | Contains x ->
+        (next_state, if SkipList.search sl x then Some x else None)
+end
+
 module LFStack = MakeLF(SequentialStack)
 module LFQueue = MakeLF(SequentialQueue)
 
@@ -46,6 +73,8 @@ module WFQueue = MakeWF(SequentialQueue)
 
 module LFList = MakeLF(SequentialSortedList)
 module WFList = MakeWF(SequentialSortedList)
+module LFSkipList = MakeLF(SequentialSkipList)
+module WFSkipList = MakeWF(SequentialSkipList)
 
 let num_threads = 8
 
@@ -67,6 +96,12 @@ module MakeTests (U : sig
     type 'a t
     val create : int -> 'a t
     val apply : 'a t -> 'a SequentialSortedList.op -> int -> 'a option
+  end
+
+  module SkipList : sig
+    type 'a t
+    val create : int -> 'a t
+    val apply : 'a t -> 'a SequentialSkipList.op -> int -> 'a option
   end
   
 end) = struct
@@ -355,6 +390,92 @@ let test_list_high_contention () =
   Printf.printf "List: high contention OK\n%!"
 
 
+(* ===== SKIP LIST TESTS ===== *)
+
+let test_skiplist_sequential () =
+  Printf.printf "SkipList: testing sequential operations...\n%!";
+  let l = U.SkipList.create num_threads in
+
+  ignore (U.SkipList.apply l (SequentialSkipList.Insert 5) 0);
+  ignore (U.SkipList.apply l (SequentialSkipList.Insert 10) 0);
+  ignore (U.SkipList.apply l (SequentialSkipList.Insert 3) 0);
+  ignore (U.SkipList.apply l (SequentialSkipList.Insert 5) 0);
+
+  assert (U.SkipList.apply l (SequentialSkipList.Contains 5) 0 = Some 5);
+  assert (U.SkipList.apply l (SequentialSkipList.Contains 10) 0 = Some 10);
+  assert (U.SkipList.apply l (SequentialSkipList.Contains 3) 0 = Some 3);
+  assert (U.SkipList.apply l (SequentialSkipList.Contains 7) 0 = None);
+
+  ignore (U.SkipList.apply l (SequentialSkipList.Remove 5) 0);
+  assert (U.SkipList.apply l (SequentialSkipList.Contains 5) 0 = None);
+
+  Printf.printf "SkipList: sequential OK\n%!"
+
+
+let test_skiplist_concurrent () =
+  Printf.printf "SkipList: testing concurrent operations...\n%!";
+  let l = U.SkipList.create num_threads in
+
+  let num_domains = 4 in
+  let ops_per_domain = 250 in
+
+  let worker id =
+    let start = id * ops_per_domain in
+    for i = 0 to ops_per_domain - 1 do
+      let value = start + i in
+      ignore (U.SkipList.apply l (SequentialSkipList.Insert value) id);
+      if i mod 2 = 0 then
+        ignore (U.SkipList.apply l (SequentialSkipList.Remove value) id);
+    done
+  in
+
+  let domains =
+    Array.init num_domains (fun id ->
+      Domain.spawn (fun () -> worker id))
+  in
+  Array.iter Domain.join domains;
+
+  for id = 0 to num_domains - 1 do
+    for i = 0 to ops_per_domain - 1 do
+      let value = id * ops_per_domain + i in
+      let expected = i mod 2 <> 0 in
+      let res = U.SkipList.apply l (SequentialSkipList.Contains value) 0 in
+      match (expected, res) with
+      | true, Some _ -> ()
+      | false, None -> ()
+      | _ -> assert false
+    done
+  done;
+
+  Printf.printf "SkipList: concurrent OK\n%!"
+
+
+let test_skiplist_high_contention () =
+  Printf.printf "SkipList: testing high contention...\n%!";
+  let l = U.SkipList.create num_threads in
+
+  let n_domains = 8 in
+  let n_ops = 1000 in
+
+  let worker id =
+    for _ = 1 to n_ops do
+      let key = Random.int 10 in
+      match Random.int 3 with
+      | 0 -> ignore (U.SkipList.apply l (SequentialSkipList.Insert key) id)
+      | 1 -> ignore (U.SkipList.apply l (SequentialSkipList.Remove key) id)
+      | _ -> ignore (U.SkipList.apply l (SequentialSkipList.Contains key) id)
+    done
+  in
+
+  let domains =
+    Array.init n_domains (fun id ->
+      Domain.spawn (fun () -> worker id))
+  in
+  Array.iter Domain.join domains;
+
+  Printf.printf "SkipList: high contention OK\n%!"
+
+
 
 
 end
@@ -366,12 +487,14 @@ module LF = struct
   module Stack = LFStack
   module Queue = LFQueue
   module SortedList = LFList
+  module SkipList = LFSkipList
 end
 
 module WF = struct
   module Stack = WFStack
   module Queue = WFQueue
   module SortedList = WFList
+  module SkipList = WFSkipList
 end
 
 
@@ -395,6 +518,9 @@ let () =
   LFTests.test_list_sequential ();
   LFTests.test_list_concurrent ();
   LFTests.test_list_high_contention ();
+  LFTests.test_skiplist_sequential ();
+  LFTests.test_skiplist_concurrent ();
+  LFTests.test_skiplist_high_contention ();
 
   Printf.printf "\n=== WF Tests ===\n\n%!";
   WFTests.test_stack_sequential ();
@@ -408,5 +534,8 @@ let () =
   WFTests.test_list_sequential ();
   WFTests.test_list_concurrent ();
   WFTests.test_list_high_contention ();
+  WFTests.test_skiplist_sequential ();
+  WFTests.test_skiplist_concurrent ();
+  WFTests.test_skiplist_high_contention ();
 
   Printf.printf "\nAll tests passed for both LF and WF!\n%!"

@@ -122,6 +122,37 @@ let test_set_remove_nonexistent () =
   assert (s = [1]);
   print_endline "set remove nonexistent: OK"
 
+let test_skiplist_insert_search () =
+  let sl = SkipList.create 16 0.5 in
+  List.iter (SkipList.insert sl) [3; 6; 7; 9; 12; 19];
+  assert (SkipList.search sl 6);
+  assert (not (SkipList.search sl 15));
+  print_endline "skiplist insert/search: OK"
+
+let test_skiplist_erase () =
+  let sl = SkipList.create 16 0.5 in
+  List.iter (SkipList.insert sl) [3; 6; 7; 9; 12; 19];
+  SkipList.erase sl 6;
+  assert (not (SkipList.search sl 6));
+  assert (SkipList.search sl 7);
+  print_endline "skiplist erase: OK"
+
+let test_skiplist_duplicate_insert () =
+  let sl = SkipList.create 16 0.5 in
+  SkipList.insert sl 3;
+  SkipList.insert sl 3;
+  let level_zero = List.assoc 0 (SkipList.to_lists sl) in
+  assert (level_zero = [3]);
+  print_endline "skiplist duplicate insert: OK"
+
+let test_skiplist_erase_nonexistent () =
+  let sl = SkipList.create 16 0.5 in
+  List.iter (SkipList.insert sl) [1; 2; 3];
+  SkipList.erase sl 99;
+  let level_zero = List.assoc 0 (SkipList.to_lists sl) in
+  assert (level_zero = [1; 2; 3]);
+  print_endline "skiplist erase nonexistent: OK"
+
 
 
 let () =
@@ -141,6 +172,12 @@ let () =
   test_set_sorted_order ();
   test_set_duplicate_insert ();
   test_set_remove_nonexistent ();
+
+  print_endline "\n── Sequential SkipList ──";
+  test_skiplist_insert_search ();
+  test_skiplist_erase ();
+  test_skiplist_duplicate_insert ();
+  test_skiplist_erase_nonexistent ();
 
   print_endline "\nAll sequential tests passed."
 
