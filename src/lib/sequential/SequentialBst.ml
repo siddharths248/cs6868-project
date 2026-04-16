@@ -9,7 +9,6 @@ type 'a rnode = {
 
 let create ~compare () =
   { compare; root = Empty; }
-
   
 let rec to_list root =  
   match root with
@@ -84,3 +83,16 @@ let rec remove root cmp node =
     {compare = cmp; root = rt} -> {compare = cmp; root = remove rt cmp elt} 
 
   let empty cmp = create ~compare:cmp ()
+
+  type 'a state = 'a rnode
+
+  type 'a op = 
+    | Insert of 'a
+    | Remove of 'a
+    | Contains of 'a
+    
+  let apply op state =
+    match op with
+    | Insert x -> (insert state x, None)
+    | Remove x -> (remove state x, None)
+    | Contains x -> (state, Some (is_present state x))
