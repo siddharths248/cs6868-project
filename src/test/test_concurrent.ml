@@ -65,6 +65,28 @@ module SequentialSkipList = struct
         (next_state, if SkipList.search sl x then Some x else None)
 end
 
+module SequentialBst = struct
+  type 'a state = 'a Bst.rnode
+  type 'a op =
+    | Insert of 'a
+    | Remove of 'a
+    | Contains of 'a
+
+  let empty : 'a Bst.rnode = { Bst.compare = Stdlib.compare; root = Empty }
+
+  let apply op state =
+    match op with
+    | Insert x ->
+        let next_state = Bst.insert state x in
+        (next_state, None)
+    | Remove x ->
+        let next_state = Bst.remove state x in
+        (next_state, None)
+    | Contains x ->
+        let present = Bst.is_present state x in
+        (state, if present then Some x else None)
+end
+
 module LFStack = MakeLF(SequentialStack)
 module LFQueue = MakeLF(SequentialQueue)
 
@@ -102,6 +124,12 @@ module MakeTests (U : sig
     type 'a t
     val create : int -> 'a t
     val apply : 'a t -> 'a SequentialSkipList.op -> int -> 'a option
+  end
+
+  module Bst : sig
+    type 'a t
+    val create : int -> 'a t
+    val apply : 'a t -> 'a SequentialBst.op -> int -> 'a option
   end
   
 end) = struct
@@ -477,7 +505,89 @@ let test_skiplist_high_contention () =
 
 
 
+(* ===== BST TESTS ===== *)
 
+  let test_bst_sequential () =
+    Printf.printf "Bst: testing sequential operations...\n%!";
+    let t = U.Bst.create num_threads in
+
+    ignore (U.Bst.apply t (SequentialBst.Insert 5) 0);
+    ignore (U.Bst.apply t (SequentialBst.Insert 10) 0);
+    ignore (U.Bst.apply t (SequentialBst.Insert 3) 0);
+
+    assert (U.Bst.apply t (SequentialBst.Contains 5) 0 = Some 5);
+    assert (U.Bst.apply t (SequentialBst.Contains 10) 0 = Some 10);
+    assert (U.Bst.apply t (SequentialBst.Contains 3) 0 = Some 3);
+    assert (U.Bst.apply t (SequentialBst.Contains 7) 0 = None);
+
+    ignore (U.Bst.apply t (SequentialBst.Remove 5) 0);
+    assert (U.Bst.apply t (SequentialBst.Contains 5) 0 = None);
+
+    Printf.printf "Bst: sequential OK\n%!"
+
+
+  let test_bst_concurrent () =
+    Printf.printf "Bst: testing concurrent operations...\n%!";
+    let t = U.Bst.create num_threads in
+
+    let num_domains = 4 in
+    let ops_per_domain = 250 in
+
+    let worker id =
+      let start = id * ops_per_domain in
+      for i = 0 to ops_per_domain - 1 do
+        let value = start + i in
+        ignore (U.Bst.apply t (SequentialBst.Insert value) id);
+        if i mod 2 = 0 then
+          ignore (U.Bst.apply t (SequentialBst.Remove value) id);
+      done
+    in
+
+    let domains =
+      Array.init num_domains (fun id ->
+        Domain.spawn (fun () -> worker id))
+    in
+    Array.iter Domain.join domains;
+
+    for id = 0 to num_domains - 1 do
+      for i = 0 to ops_per_domain - 1 do
+        let value = id * ops_per_domain + i in
+        let expected = i mod 2 <> 0 in
+        let res = U.Bst.apply t (SequentialBst.Contains value) 0 in
+        match (expected, res) with
+        | true, Some _ -> ()
+        | false, None -> ()
+        | _ -> assert false
+      done
+    done;
+
+    Printf.printf "Bst: concurrent OK\n%!"
+
+
+  let test_bst_high_contention () =
+    Printf.printf "Bst: testing high contention...\n%!";
+    let t = U.Bst.create num_threads in
+
+    let n_domains = 8 in
+    let n_ops = 1000 in
+
+    let worker id =
+      for _ = 1 to n_ops do
+        let key = Random.int 1000 in
+        match Random.int 3 with
+        | 0 -> ignore (U.Bst.apply t (SequentialBst.Insert key) id)
+        | 1 -> ignore (U.Bst.apply t (SequentialBst.Remove key) id)
+        | _ -> ignore (U.Bst.apply t (SequentialBst.Contains key) id)
+      done
+    in
+
+    let domains =
+      Array.init n_domains (fun id ->
+        Domain.spawn (fun () -> worker id))
+    in
+    Array.iter Domain.join domains;
+
+    Printf.printf "Bst: high contention OK\n%!"
 end
 
 
@@ -488,6 +598,7 @@ module LF = struct
   module Queue = LFQueue
   module SortedList = LFList
   module SkipList = LFSkipList
+  module Bst = MakeLF(SequentialBst)
 end
 
 module WF = struct
@@ -495,6 +606,7 @@ module WF = struct
   module Queue = WFQueue
   module SortedList = WFList
   module SkipList = WFSkipList
+  module Bst = MakeWF(SequentialBst)
 end
 
 
@@ -521,6 +633,9 @@ let () =
   LFTests.test_skiplist_sequential ();
   LFTests.test_skiplist_concurrent ();
   LFTests.test_skiplist_high_contention ();
+  LFTests.test_bst_sequential ();
+  LFTests.test_bst_concurrent ();
+  LFTests.test_bst_high_contention ();
 
   Printf.printf "\n=== WF Tests ===\n\n%!";
   WFTests.test_stack_sequential ();
@@ -537,5 +652,8 @@ let () =
   WFTests.test_skiplist_sequential ();
   WFTests.test_skiplist_concurrent ();
   WFTests.test_skiplist_high_contention ();
+  WFTests.test_bst_sequential ();
+  WFTests.test_bst_concurrent ();
+  WFTests.test_bst_high_contention ();
 
   Printf.printf "\nAll tests passed for both LF and WF!\n%!"

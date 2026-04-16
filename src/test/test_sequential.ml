@@ -153,6 +153,19 @@ let test_skiplist_erase_nonexistent () =
   assert (level_zero = [1; 2; 3]);
   print_endline "skiplist erase nonexistent: OK"
 
+let test_bst_insert_remove () =
+  let t = Bst.empty compare in
+  let t = Bst.insert t 5 in
+  let t = Bst.insert t 2 in
+  let t = Bst.insert t 8 in
+  let t = Bst.insert t 1 in
+  let t = Bst.insert t 3 in
+  let t = Bst.insert t 7 in
+  assert (Bst.to_list t = [1; 2; 3; 5; 7; 8]);
+  let t = Bst.remove t 2 in
+  assert (Bst.to_list t = [1; 3; 5; 7; 8]);
+  print_endline "bst insert/remove: OK"
+
 
 
 let () =
@@ -178,6 +191,9 @@ let () =
   test_skiplist_erase ();
   test_skiplist_duplicate_insert ();
   test_skiplist_erase_nonexistent ();
+
+  print_endline "\n── Sequential Bst ──";
+  test_bst_insert_remove ();
 
   print_endline "\nAll sequential tests passed."
 
