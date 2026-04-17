@@ -173,5 +173,5 @@ let apply op state =
   match op with
   | Insert x -> insert state x; (state, None)
   | Remove x -> erase state x; (state, None)
-  | Contains x -> (state, Some (search state x))
+  | Contains x -> (state, if search state x then Some x else None)
 

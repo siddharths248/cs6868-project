@@ -95,4 +95,4 @@ let rec remove root cmp node =
     match op with
     | Insert x -> (insert state x, None)
     | Remove x -> (remove state x, None)
-    | Contains x -> (state, Some (is_present state x))
+    | Contains x -> (state, if is_present state x then Some x else None)
