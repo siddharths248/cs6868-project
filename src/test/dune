@@ -14,3 +14,5 @@
   qcheck-core
   qcheck-lin.lin
   qcheck-lin.domain))
+ (name test_qcheck_stm)
+ (libraries src sequential qcheck-stm.domain qcheck-stm.sequential))
