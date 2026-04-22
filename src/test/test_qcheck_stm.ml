@@ -4,12 +4,6 @@ open QCheck
 open STM
 
 let num_threads = 8
-let next_tid = Atomic.make 0
-
-let tid_key : int Domain.DLS.key = Domain.DLS.new_key (fun () -> Atomic.fetch_and_add next_tid 1)
-
-let get_tid () = (Domain.DLS.get tid_key) mod num_threads
-
 module type SeqLike = sig
   type 'a state
   type 'a op
@@ -22,13 +16,13 @@ module MakeLF (Seq : SeqLike) = struct
 
   let create = LFUniversal.create
 
-  let apply obj op tid =
+  let apply obj op =
     let invoc (state, _) =
       let (next_state, result) = Seq.apply op state in
       ((next_state, result), result)
     in
     let initial_obj = (Seq.empty (), None) in
-    let (_new_obj, result) = LFUniversal.apply obj initial_obj invoc tid in
+    let (_new_obj, result) = LFUniversal.apply obj initial_obj invoc in
     result
 end
 
@@ -37,13 +31,13 @@ module MakeWF (Seq : SeqLike) = struct
 
   let create = WFUniversal.create
 
-  let apply obj op tid =
+  let apply obj op =
     let invoc (state, _) =
       let (next_state, result) = Seq.apply op state in
       ((next_state, result), result)
     in
     let initial_obj = (Seq.empty (), None) in
-    let (_new_obj, result) = WFUniversal.apply obj initial_obj invoc tid in
+    let (_new_obj, result) = WFUniversal.apply obj initial_obj invoc in
     result
 end
 
@@ -157,10 +151,9 @@ module LFStackSpec = struct
   type sut          = int LFStack.t
   let init_sut ()   = LFStack.create num_threads
   let run cmd sut =
-  let tid = get_tid () in
   match cmd with
-  | SequentialStack.Push x -> Res (option int, LFStack.apply sut (SequentialStack.Push x) tid)
-  | SequentialStack.Pop    -> Res (option int, LFStack.apply sut  SequentialStack.Pop     tid)
+  | SequentialStack.Push x -> Res (option int, LFStack.apply sut (SequentialStack.Push x))
+  | SequentialStack.Pop    -> Res (option int, LFStack.apply sut  SequentialStack.Pop)
 end
 
 module WFStackSpec = struct
@@ -168,10 +161,9 @@ module WFStackSpec = struct
   type sut          = int WFStack.t
   let init_sut ()   = WFStack.create num_threads
   let run cmd sut =
-   let tid = get_tid () in
    match cmd with
-  | SequentialStack.Push x -> Res (option int, WFStack.apply sut (SequentialStack.Push x) tid)
-  | SequentialStack.Pop    -> Res (option int, WFStack.apply sut  SequentialStack.Pop     tid)
+  | SequentialStack.Push x -> Res (option int, WFStack.apply sut (SequentialStack.Push x))
+  | SequentialStack.Pop    -> Res (option int, WFStack.apply sut  SequentialStack.Pop)
 end
 
 (* ================================================================== *)
@@ -210,10 +202,9 @@ module LFQueueSpec = struct
   type sut          = int LFQueue.t
   let init_sut ()   = LFQueue.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialQueue.Enqueue x -> Res (option int, LFQueue.apply sut (SequentialQueue.Enqueue x) tid)
-    | SequentialQueue.Dequeue   -> Res (option int, LFQueue.apply sut  SequentialQueue.Dequeue    tid)
+    | SequentialQueue.Enqueue x -> Res (option int, LFQueue.apply sut (SequentialQueue.Enqueue x))
+    | SequentialQueue.Dequeue   -> Res (option int, LFQueue.apply sut  SequentialQueue.Dequeue)
 end
 
 module WFQueueSpec = struct
@@ -221,10 +212,9 @@ module WFQueueSpec = struct
   type sut          = int WFQueue.t
   let init_sut ()   = WFQueue.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialQueue.Enqueue x -> Res (option int, WFQueue.apply sut (SequentialQueue.Enqueue x) tid)
-    | SequentialQueue.Dequeue   -> Res (option int, WFQueue.apply sut  SequentialQueue.Dequeue    tid)
+    | SequentialQueue.Enqueue x -> Res (option int, WFQueue.apply sut (SequentialQueue.Enqueue x))
+    | SequentialQueue.Dequeue   -> Res (option int, WFQueue.apply sut  SequentialQueue.Dequeue)
 end
 
 
@@ -266,11 +256,10 @@ module LFListSpec = struct
   type sut          = int LFList.t
   let init_sut ()   = LFList.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialSortedList.Insert x -> Res (option int, LFList.apply sut (SequentialSortedList.Insert x) tid)
-    | SequentialSortedList.Remove x -> Res (option int, LFList.apply sut (SequentialSortedList.Remove x) tid)
-    | SequentialSortedList.Contains x -> Res (option int, LFList.apply sut (SequentialSortedList.Contains x) tid)
+    | SequentialSortedList.Insert x -> Res (option int, LFList.apply sut (SequentialSortedList.Insert x))
+    | SequentialSortedList.Remove x -> Res (option int, LFList.apply sut (SequentialSortedList.Remove x))
+    | SequentialSortedList.Contains x -> Res (option int, LFList.apply sut (SequentialSortedList.Contains x))
 end
 
 module WFListSpec = struct
@@ -278,11 +267,10 @@ module WFListSpec = struct
   type sut          = int WFList.t
   let init_sut ()   = WFList.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialSortedList.Insert x -> Res (option int, WFList.apply sut (SequentialSortedList.Insert x) tid)
-    | SequentialSortedList.Remove x -> Res (option int, WFList.apply sut (SequentialSortedList.Remove x) tid)
-    | SequentialSortedList.Contains x -> Res (option int, WFList.apply sut (SequentialSortedList.Contains x) tid)
+    | SequentialSortedList.Insert x -> Res (option int, WFList.apply sut (SequentialSortedList.Insert x))
+    | SequentialSortedList.Remove x -> Res (option int, WFList.apply sut (SequentialSortedList.Remove x))
+    | SequentialSortedList.Contains x -> Res (option int, WFList.apply sut (SequentialSortedList.Contains x))
 end
 
 (* ================================================================== *)
@@ -323,11 +311,10 @@ module LFSkipListSpec = struct
   type sut          = int LFSkipList.t
   let init_sut ()   = LFSkipList.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialSkipList.Insert x -> Res (option int, LFSkipList.apply sut (SequentialSkipList.Insert x) tid)
-    | SequentialSkipList.Remove x -> Res (option int, LFSkipList.apply sut (SequentialSkipList.Remove x) tid)
-    | SequentialSkipList.Contains x -> Res (option int, LFSkipList.apply sut (SequentialSkipList.Contains x) tid)
+    | SequentialSkipList.Remove x -> Res (option int, LFSkipList.apply sut (SequentialSkipList.Remove x))
+    | SequentialSkipList.Insert x -> Res (option int, LFSkipList.apply sut (SequentialSkipList.Insert x))
+    | SequentialSkipList.Contains x -> Res (option int, LFSkipList.apply sut (SequentialSkipList.Contains x))
 end
 
 module WFSkipListSpec = struct
@@ -335,11 +322,10 @@ module WFSkipListSpec = struct
   type sut          = int WFSkipList.t
   let init_sut ()   = WFSkipList.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialSkipList.Insert x -> Res (option int, WFSkipList.apply sut (SequentialSkipList.Insert x) tid)
-    | SequentialSkipList.Remove x -> Res (option int, WFSkipList.apply sut (SequentialSkipList.Remove x) tid)
-    | SequentialSkipList.Contains x -> Res (option int, WFSkipList.apply sut (SequentialSkipList.Contains x) tid)
+    | SequentialSkipList.Insert x -> Res (option int, WFSkipList.apply sut (SequentialSkipList.Insert x))
+    | SequentialSkipList.Remove x -> Res (option int, WFSkipList.apply sut (SequentialSkipList.Remove x))
+    | SequentialSkipList.Contains x -> Res (option int, WFSkipList.apply sut (SequentialSkipList.Contains x))
 end
 
 
@@ -381,11 +367,10 @@ module LFSBstSpec = struct
   type sut          = int LFBst.t
   let init_sut ()   = LFBst.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialBst.Insert x -> Res (option int, LFBst.apply sut (SequentialBst.Insert x) tid)
-    | SequentialBst.Remove x -> Res (option int, LFBst.apply sut (SequentialBst.Remove x) tid)
-    | SequentialBst.Contains x -> Res (option int, LFBst.apply sut (SequentialBst.Contains x) tid)
+    | SequentialBst.Insert x -> Res (option int, LFBst.apply sut (SequentialBst.Insert x))
+    | SequentialBst.Remove x -> Res (option int, LFBst.apply sut (SequentialBst.Remove x))
+    | SequentialBst.Contains x -> Res (option int, LFBst.apply sut (SequentialBst.Contains x))
 end
 
 module WFBstSpec = struct
@@ -393,11 +378,10 @@ module WFBstSpec = struct
   type sut          = int WFBst.t
   let init_sut ()   = WFBst.create num_threads
   let run cmd sut   =
-    let tid = get_tid () in
     match cmd with
-    | SequentialBst.Insert x -> Res (option int, WFBst.apply sut (SequentialBst.Insert x) tid)
-    | SequentialBst.Remove x -> Res (option int, WFBst.apply sut (SequentialBst.Remove x) tid)
-    | SequentialBst.Contains x -> Res (option int, WFBst.apply sut (SequentialBst.Contains x) tid)
+    | SequentialBst.Insert x -> Res (option int, WFBst.apply sut (SequentialBst.Insert x))
+    | SequentialBst.Remove x -> Res (option int, WFBst.apply sut (SequentialBst.Remove x))
+    | SequentialBst.Contains x -> Res (option int, WFBst.apply sut (SequentialBst.Contains x))
 end
 
 (* ================================================================== *)
@@ -411,13 +395,13 @@ end
 (* ================================================================== *)
 
 let () =
-  (* run_tests (module LFStackSpec) "LF Stack";
+  run_tests (module LFStackSpec) "LF Stack";
   run_tests (module WFStackSpec) "WF Stack";
   run_tests (module LFQueueSpec) "LF Queue";
   run_tests (module WFQueueSpec) "WF Queue";
   run_tests (module LFListSpec) "LF Sorted List";
-  run_tests (module WFListSpec) "WF Sorted List"; *)
-  run_tests (module LFSkipListSpec) "LF Skip List";
-  run_tests (module WFSkipListSpec) "WF Skip List";
-  (* run_tests (module LFSBstSpec) "LF BST";
-  run_tests (module WFBstSpec) "WF BST"; *)
+  run_tests (module WFListSpec) "WF Sorted List";
+  (* run_tests (module LFSkipListSpec) "LF Skip List";
+  run_tests (module WFSkipListSpec) "WF Skip List"; *)
+  run_tests (module LFSBstSpec) "LF BST";
+  run_tests (module WFBstSpec) "WF BST";

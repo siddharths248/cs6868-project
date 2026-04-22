@@ -11,7 +11,7 @@ let num_threads = 10
 module StackSpec (S : sig
   type 'a t
   val create : int -> 'a t
-  val apply : 'a t -> 'a Sequential.SequentialStack.op -> int -> 'a option
+  val apply : 'a t -> 'a Sequential.SequentialStack.op -> 'a option
 end) = struct
   type t = int S.t
 
@@ -42,7 +42,7 @@ module WFStackTest = Lin_domain.Make(StackSpec(WFStack))
 module QueueSpec (Q : sig
   type 'a t
   val create : int -> 'a t
-  val apply : 'a t -> 'a Sequential.SequentialQueue.op -> int -> 'a option
+  val apply : 'a t -> 'a Sequential.SequentialQueue.op -> 'a option
 end) = struct
   type t = int Q.t
 
@@ -73,7 +73,7 @@ module WFQueueTest = Lin_domain.Make(QueueSpec(WFQueue))
 module ListSpec (L : sig
   type 'a t
   val create : int -> 'a t
-  val apply : 'a t -> 'a Sequential.SequentialSortedList.op -> int -> 'a option
+  val apply : 'a t -> 'a Sequential.SequentialSortedList.op -> 'a option
 end) = struct
   type t = int L.t
 
@@ -112,7 +112,7 @@ module SkipListSpec (L : sig
   val apply :
     'a t ->
     'a Universal_instances.SeqSkipListAdapter.op ->
-    int -> 'a option
+    'a option
 end) = struct
   type t = int L.t
 

@@ -239,7 +239,7 @@ end) = struct
     ignore (U.Queue.apply q (SequentialQueue.Enqueue 20));
     ignore (U.Queue.apply q (SequentialQueue.Enqueue 30));
     assert (U.Queue.apply q SequentialQueue.Dequeue = Some 20);
-    ignore (U.Queue.apply q (SequentialQueue.Enqueue 40) 0);
+    ignore (U.Queue.apply q (SequentialQueue.Enqueue 40));
     assert (U.Queue.apply q SequentialQueue.Dequeue = Some 30);
     assert (U.Queue.apply q SequentialQueue.Dequeue = Some 40);
     assert (U.Queue.apply q SequentialQueue.Dequeue = None);
@@ -347,9 +347,9 @@ let test_list_concurrent () =
     let start = id * ops_per_domain in
     for i = 0 to ops_per_domain - 1 do
       let value = start + i in
-      ignore (U.SortedList.apply l (SequentialSortedList.Insert value) id);
+      ignore (U.SortedList.apply l (SequentialSortedList.Insert value));
       if i mod 2 = 0 then
-        ignore (U.SortedList.apply l (SequentialSortedList.Remove value) id);
+        ignore (U.SortedList.apply l (SequentialSortedList.Remove value));
     done
   in
 
