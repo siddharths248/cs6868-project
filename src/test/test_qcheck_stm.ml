@@ -58,7 +58,7 @@ end
 module SortedListSeq = struct
   type 'a state = 'a SequentialSortedList.state
   type 'a op = 'a SequentialSortedList.op
-  let apply = SequentialSortedList.apply
+  let apply op state = SequentialSortedList.apply state op
   let empty () = SequentialSortedList.empty
 end
 
@@ -72,8 +72,8 @@ end
 module BstSeq = struct
   type 'a state = 'a SequentialBst.state
   type 'a op = 'a SequentialBst.op
-  let empty () = SequentialBst.empty Stdlib.compare
-  let apply op state = SequentialBst.apply op state
+  let empty () = SequentialBst.empty
+  let apply op state = SequentialBst.apply state op
 end
 
 module LFStack = MakeLF(StackSeq)
@@ -241,12 +241,12 @@ module SortedListBase = struct
   let show_cmd = show_sortdlst_cmd
   let init_state    = []
   let next_state cmd state =
-    let (next, _) = SequentialSortedList.apply cmd state in
+    let (next, _) = SequentialSortedList.apply state cmd in
     next
   let precond _c _s = true
   let postcond cmd state result =
     match result with
-    | Res ((Option Int, _), v) ->   let expected : int option = snd (SequentialSortedList.apply cmd state) in v = expected
+    | Res ((Option Int, _), v) ->   let expected : int option = snd (SequentialSortedList.apply state cmd) in v = expected
     | _ -> false
   let cleanup _     = ()
 end
@@ -350,14 +350,14 @@ module BstBase = struct
   type nonrec cmd   = int SequentialBst.op
   let arb_cmd       = arb_bst_cmd
   let show_cmd = show_bst_cmd
-  let init_state    = SequentialBst.empty Stdlib.compare 
+  let init_state    = SequentialBst.empty 
   let next_state cmd state =
-    let (next, _) = SequentialBst.apply cmd state in
+    let (next, _) = SequentialBst.apply state cmd in
     next
   let precond _c _s = true
   let postcond cmd state result =
     match result with
-    | Res ((Option Int, _), v) ->   let expected : int option = snd (SequentialBst.apply cmd state) in v = expected
+    | Res ((Option Int, _), v) ->   let expected : int option = snd (SequentialBst.apply state cmd) in v = expected
     | _ -> false
   let cleanup _     = ()
 end

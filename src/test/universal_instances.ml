@@ -23,7 +23,7 @@ module SeqListAdapter = struct
   type 'a op = 'a SequentialSortedList.op
 
   let empty = SequentialSortedList.empty
-  let apply state op = SequentialSortedList.apply op state
+  let apply state op = SequentialSortedList.apply state op
 end
 
 module SeqSkipListAdapter = struct
