@@ -148,15 +148,15 @@ module WFSkipListTest = Lin_domain.Make(SkipListSpec(WFSkipList))
 let () =
   QCheck_base_runner.run_tests_main [
 
-    (* LFStackTest.lin_test ~count:10 ~name:"LF Stack Lin";
+    LFStackTest.lin_test ~count:10 ~name:"LF Stack Lin";
     WFStackTest.lin_test ~count:10 ~name:"WF Stack Lin";
 
     LFQueueTest.lin_test ~count:10 ~name:"LF Queue Lin";
-    WFQueueTest.lin_test ~count:10 ~name:"WF Queue Lin";   *)
+    WFQueueTest.lin_test ~count:10 ~name:"WF Queue Lin";  
 
     LFListTest.lin_test ~count:100 ~name:"LF List Lin";
     WFListTest.lin_test ~count:100 ~name:"WF List Lin";
 
-    (* LFSkipListTest.lin_test ~count:10 ~name:"LF SkipList Lin";
-    WFSkipListTest.lin_test ~count:10 ~name:"WF SkipList Lin"; *)
+    LFSkipListTest.lin_test ~count:10 ~name:"LF SkipList Lin";
+    WFSkipListTest.lin_test ~count:10 ~name:"WF SkipList Lin";
   ]
