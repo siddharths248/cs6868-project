@@ -55,7 +55,7 @@ end
 module SortedListSeq = struct
   type 'a state = 'a SequentialSortedList.state
   type 'a op = 'a SequentialSortedList.op
-  let apply = SequentialSortedList.apply
+  let apply op state = SequentialSortedList.apply state op
   let empty () = SequentialSortedList.empty
 end
 
@@ -69,8 +69,8 @@ end
 module BstSeq = struct
   type 'a state = 'a SequentialBst.state
   type 'a op = 'a SequentialBst.op
-  let empty () = SequentialBst.empty Stdlib.compare
-  let apply op state = SequentialBst.apply op state
+  let empty () = SequentialBst.empty
+  let apply op state = SequentialBst.apply state op
 end
 
 module LFStack = MakeLF(StackSeq)

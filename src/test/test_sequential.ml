@@ -76,49 +76,49 @@ let test_queue_fifo () =
 
 let test_set_insert_contains () =
   let s = SequentialSortedList.empty in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 3) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 1) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 2) s in
-  let _, r = SequentialSortedList.apply (SequentialSortedList.Contains 2) s in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 3) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 1) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 2) in
+  let _, r = SequentialSortedList.apply s (SequentialSortedList.Contains 2) in
   assert (r = Some 2);
-  let _, r = SequentialSortedList.apply (SequentialSortedList.Contains 99) s in
+  let _, r = SequentialSortedList.apply s (SequentialSortedList.Contains 99) in
   assert (r = None);
   print_endline "set insert/contains: OK"
 
 
 let test_set_remove () =
   let s = SequentialSortedList.empty in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 1) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 2) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Remove 1) s in
-  let _, r = SequentialSortedList.apply (SequentialSortedList.Contains 1) s in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 1) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 2) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Remove 1) in
+  let _, r = SequentialSortedList.apply s (SequentialSortedList.Contains 1) in
   assert (r = None);
-  let _, r = SequentialSortedList.apply (SequentialSortedList.Contains 2) s in
+  let _, r = SequentialSortedList.apply s (SequentialSortedList.Contains 2) in
   assert (r = Some 2);
   print_endline "set remove: OK"
 
 let test_set_sorted_order () =
   (* insert out of order, check internal list is sorted *)
   let s = SequentialSortedList.empty in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 5) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 2) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 8) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 1) s in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 5) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 2) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 8) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 1) in
   assert (s = [1; 2; 5; 8]);
   print_endline "set sorted order: OK"
 
 
 let test_set_duplicate_insert () =
   let s = SequentialSortedList.empty in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 3) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 3) s in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 3) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 3) in
   assert (s = [3]);
   print_endline "set duplicate insert: OK"
 
 let test_set_remove_nonexistent () =
   let s = SequentialSortedList.empty in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Insert 1) s in
-  let s, _ = SequentialSortedList.apply (SequentialSortedList.Remove 99) s in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Insert 1) in
+  let s, _ = SequentialSortedList.apply s (SequentialSortedList.Remove 99) in
   assert (s = [1]);
   print_endline "set remove nonexistent: OK"
 
@@ -154,7 +154,7 @@ let test_skiplist_erase_nonexistent () =
   print_endline "skiplist erase nonexistent: OK"
 
 let test_bst_insert_remove () =
-  let t = SequentialBst.empty compare in
+  let t = SequentialBst.empty in
   let t = SequentialBst.insert t 5 in
   let t = SequentialBst.insert t 2 in
   let t = SequentialBst.insert t 8 in
