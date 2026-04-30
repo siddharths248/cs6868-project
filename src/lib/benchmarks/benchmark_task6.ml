@@ -149,6 +149,7 @@ let benchmark ~max_threads ~repeats =
   let oc = open_out_gen [ Open_creat; Open_text; Open_trunc; Open_wronly ] 0o644 output_file in
   Printf.fprintf oc "threads,object,implementation,ops_per_microsecond\n";
   let avg_seconds f =
+    for _ = 1 to 10 do ignore (f ()) done; (*warm up*)
     let sum = ref 0.0 in
     for _ = 1 to repeats do sum := !sum +. f () done;
     !sum /. float_of_int repeats

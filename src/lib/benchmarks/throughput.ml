@@ -177,6 +177,7 @@ let benchmark ~num_ops ~repeats =
   let oc = open_out_gen [ Open_creat; Open_text; Open_trunc; Open_wronly ] 0o644 output_file in
   Printf.fprintf oc "threads,object,implementation,ops_per_sec\n";
   let avg f =
+    for _ = 1 to 10 do ignore (f ()) done; (* warmup *)
     let sum = ref 0.0 in
     for _ = 1 to repeats do sum := !sum +. f () done;
     !sum /. float_of_int repeats
